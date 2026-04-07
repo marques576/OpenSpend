@@ -47,12 +47,14 @@ class SettingsViewModel @Inject constructor(
     val showTopMerchant: StateFlow<Boolean> = monitoredAppsRepository.showTopMerchant
     val showSpendingByApp: StateFlow<Boolean> = monitoredAppsRepository.showSpendingByApp
     val showActiveDays: StateFlow<Boolean> = monitoredAppsRepository.showActiveDays
+    val showHistoricalAverage: StateFlow<Boolean> = monitoredAppsRepository.showHistoricalAverage
 
     fun setShowDailyAverage(enabled: Boolean) = monitoredAppsRepository.setShowDailyAverage(enabled)
     fun setShowMedianTransaction(enabled: Boolean) = monitoredAppsRepository.setShowMedianTransaction(enabled)
     fun setShowTopMerchant(enabled: Boolean) = monitoredAppsRepository.setShowTopMerchant(enabled)
     fun setShowSpendingByApp(enabled: Boolean) = monitoredAppsRepository.setShowSpendingByApp(enabled)
     fun setShowActiveDays(enabled: Boolean) = monitoredAppsRepository.setShowActiveDays(enabled)
+    fun setShowHistoricalAverage(enabled: Boolean) = monitoredAppsRepository.setShowHistoricalAverage(enabled)
 
     /**
      * Returns all user-visible installed apps sorted alphabetically,

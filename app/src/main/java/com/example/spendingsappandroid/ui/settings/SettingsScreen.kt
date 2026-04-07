@@ -58,6 +58,7 @@ fun SettingsScreen(
     val showTopMerchant by viewModel.showTopMerchant.collectAsState()
     val showSpendingByApp by viewModel.showSpendingByApp.collectAsState()
     val showActiveDays by viewModel.showActiveDays.collectAsState()
+    val showHistoricalAverage by viewModel.showHistoricalAverage.collectAsState()
 
     Scaffold(
         topBar = {
@@ -231,6 +232,15 @@ fun SettingsScreen(
                     description = "Days with at least one transaction",
                     isEnabled = showActiveDays,
                     onToggle = viewModel::setShowActiveDays
+                )
+            }
+
+            item {
+                MetricToggleRow(
+                    label = "Historical Average",
+                    description = "Average spending across all past months",
+                    isEnabled = showHistoricalAverage,
+                    onToggle = viewModel::setShowHistoricalAverage
                 )
             }
 

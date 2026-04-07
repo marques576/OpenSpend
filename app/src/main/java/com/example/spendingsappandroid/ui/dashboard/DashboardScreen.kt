@@ -6,6 +6,8 @@ import android.provider.Settings
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -62,11 +64,14 @@ fun DashboardScreen(
     val showTopMerchant by viewModel.showTopMerchant.collectAsState()
     val showSpendingByApp by viewModel.showSpendingByApp.collectAsState()
     val showActiveDays by viewModel.showActiveDays.collectAsState()
+    val showHistoricalAverage by viewModel.showHistoricalAverage.collectAsState()
+    val historicalStats by viewModel.historicalStats.collectAsState()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         if (!notificationAccessEnabled.value) {
@@ -130,6 +135,10 @@ fun DashboardScreen(
             if (showMedianTransaction) add(OptionalMetric("Median", formatCurrency(stats.medianTransaction, currency), MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.onSecondaryContainer))
             if (showTopMerchant) add(OptionalMetric("Top Merchant", stats.topMerchant.ifEmpty { "-" }, MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.onTertiaryContainer))
             if (showActiveDays) add(OptionalMetric("Active Days", stats.activeDays.toString(), MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer))
+            if (showHistoricalAverage) {
+                val label = if (historicalStats.totalMonths > 0) "Avg Month (${historicalStats.totalMonths} mo)" else "Avg Month"
+                add(OptionalMetric(label, formatCurrency(historicalStats.averageMonthlySpent, currency), MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.onSecondaryContainer))
+            }
         }
 
         optionalMetrics.chunked(2).forEach { rowMetrics ->

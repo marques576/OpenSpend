@@ -5,7 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.spendingsappandroid.data.local.TransactionEntity
 import com.example.spendingsappandroid.data.repository.MonitoredAppsRepository
 import com.example.spendingsappandroid.data.repository.TransactionRepository
+import com.example.spendingsappandroid.domain.model.HistoricalStats
 import com.example.spendingsappandroid.domain.model.MonthlyStats
+import com.example.spendingsappandroid.domain.usecase.HistoricalAverageUseCase
 import com.example.spendingsappandroid.domain.usecase.MonthlyStatsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,6 +23,7 @@ import javax.inject.Inject
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
     monthlyStatsUseCase: MonthlyStatsUseCase,
+    historicalAverageUseCase: HistoricalAverageUseCase,
     private val repository: TransactionRepository,
     private val monitoredAppsRepository: MonitoredAppsRepository
 ) : ViewModel() {
@@ -32,6 +35,14 @@ class DashboardViewModel @Inject constructor(
     val showTopMerchant: StateFlow<Boolean> = monitoredAppsRepository.showTopMerchant
     val showSpendingByApp: StateFlow<Boolean> = monitoredAppsRepository.showSpendingByApp
     val showActiveDays: StateFlow<Boolean> = monitoredAppsRepository.showActiveDays
+    val showHistoricalAverage: StateFlow<Boolean> = monitoredAppsRepository.showHistoricalAverage
+
+    val historicalStats: StateFlow<HistoricalStats> = historicalAverageUseCase()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = HistoricalStats()
+        )
 
     private val _monthOffset = MutableStateFlow(0)
     val monthOffset: StateFlow<Int> = _monthOffset.asStateFlow()

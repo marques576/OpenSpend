@@ -36,4 +36,7 @@ interface TransactionDao {
 
     @Query("SELECT merchant FROM transactions WHERE timestamp BETWEEN :start AND :end GROUP BY merchant ORDER BY SUM(amount) DESC LIMIT 1")
     fun getTopMerchant(start: Long, end: Long): Flow<String?>
+
+    @Query("SELECT * FROM transactions ORDER BY timestamp ASC")
+    fun getAllTransactions(): Flow<List<TransactionEntity>>
 }

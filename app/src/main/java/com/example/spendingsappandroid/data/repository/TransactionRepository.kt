@@ -47,4 +47,8 @@ class TransactionRepository @Inject constructor(
     fun getTopMerchant(start: Long, end: Long): Flow<String> {
         return transactionDao.getTopMerchant(start, end).map { it ?: "" }
     }
+
+    fun getAllTransactions(): Flow<List<TransactionEntity>> {
+        return transactionDao.getAllTransactions()
+    }
 }

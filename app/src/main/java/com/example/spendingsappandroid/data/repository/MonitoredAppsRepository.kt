@@ -28,6 +28,7 @@ class MonitoredAppsRepository @Inject constructor(
         private const val KEY_SHOW_TOP_MERCHANT = "show_top_merchant"
         private const val KEY_SHOW_SPENDING_BY_APP = "show_spending_by_app"
         private const val KEY_SHOW_ACTIVE_DAYS = "show_active_days"
+        private const val KEY_SHOW_HISTORICAL_AVERAGE = "show_historical_average"
         private const val KEY_THEME_MODE = "theme_mode"
         const val THEME_SYSTEM = "system"
         const val THEME_LIGHT = "light"
@@ -92,6 +93,9 @@ class MonitoredAppsRepository @Inject constructor(
     private val _showActiveDays = MutableStateFlow(prefs.getBoolean(KEY_SHOW_ACTIVE_DAYS, true))
     val showActiveDays: StateFlow<Boolean> = _showActiveDays.asStateFlow()
 
+    private val _showHistoricalAverage = MutableStateFlow(prefs.getBoolean(KEY_SHOW_HISTORICAL_AVERAGE, true))
+    val showHistoricalAverage: StateFlow<Boolean> = _showHistoricalAverage.asStateFlow()
+
     // --- Theme preference ---
 
     private val _themeMode = MutableStateFlow(prefs.getString(KEY_THEME_MODE, THEME_SYSTEM) ?: THEME_SYSTEM)
@@ -135,6 +139,11 @@ class MonitoredAppsRepository @Inject constructor(
     fun setShowActiveDays(enabled: Boolean) {
         prefs.edit().putBoolean(KEY_SHOW_ACTIVE_DAYS, enabled).apply()
         _showActiveDays.value = enabled
+    }
+
+    fun setShowHistoricalAverage(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_SHOW_HISTORICAL_AVERAGE, enabled).apply()
+        _showHistoricalAverage.value = enabled
     }
 
     /** Quick check used by the notification listener (no Flow overhead). */
