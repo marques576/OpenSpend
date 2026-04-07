@@ -1,5 +1,6 @@
 package com.example.spendingsappandroid.ui.settings
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -46,13 +47,25 @@ fun SettingsScreen(
     onBack: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
+    BackHandler { onBack() }
+
     val context = LocalContext.current
     val monitoredPackages by viewModel.monitoredPackages.collectAsState()
     val selectedCurrency by viewModel.currency.collectAsState()
     var showCurrencyPicker by remember { mutableStateOf(false) }
+    val themeMode by viewModel.themeMode.collectAsState()
+    var showThemePicker by remember { mutableStateOf(false) }
     val installedApps = remember {
         viewModel.getInstalledApps(context.packageManager)
     }
+
+    // Metric toggle states
+    val showDailyAverage by viewModel.showDailyAverage.collectAsState()
+    val showMedianTransaction by viewModel.showMedianTransaction.collectAsState()
+    val showTopMerchant by viewModel.showTopMerchant.collectAsState()
+    val showSmallestPurchase by viewModel.showSmallestPurchase.collectAsState()
+    val showSpendingByApp by viewModel.showSpendingByApp.collectAsState()
+    val showActiveDays by viewModel.showActiveDays.collectAsState()
 
     Scaffold(
         topBar = {
@@ -73,84 +86,213 @@ fun SettingsScreen(
             )
         }
     ) { padding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
         ) {
             // --- Currency section ---
-            Text(
-                text = "Currency",
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(start = 16.dp, top = 12.dp, bottom = 4.dp)
-            )
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { showCurrencyPicker = true }
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    Text(
-                        text = "Display currency",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    Text(
-                        text = "Used for the dashboard and as default for new transactions",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+            item {
                 Text(
-                    text = selectedCurrency,
-                    style = MaterialTheme.typography.titleMedium,
+                    text = "Currency",
+                    style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+                    modifier = Modifier.padding(start = 16.dp, top = 12.dp, bottom = 4.dp)
                 )
             }
 
-            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-
-            // --- Monitored apps section ---
-            Text(
-                text = "Monitored Apps",
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 2.dp)
-            )
-
-            Text(
-                text = "${monitoredPackages.size} app${if (monitoredPackages.size != 1) "s" else ""} selected",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-            )
-
-            if (installedApps.isEmpty()) {
-                Text(
-                    text = "No apps found. On Android 11+ the system restricts app " +
-                        "visibility — make sure OpenSpend is up to date so it can " +
-                        "discover your installed apps.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
-                )
-            } else {
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(installedApps, key = { it.packageName }) { app ->
-                        AppToggleRow(
-                            appLabel = app.label,
-                            packageName = app.packageName,
-                            isMonitored = app.packageName in monitoredPackages,
-                            onToggle = { checked ->
-                                viewModel.setMonitored(app.packageName, checked)
-                            }
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showCurrencyPicker = true }
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            text = "Display currency",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                        Text(
+                            text = "Used for the dashboard and as default for new transactions",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
+                    Text(
+                        text = selectedCurrency,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+
+            item { HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp)) }
+
+            // --- Theme section ---
+            item {
+                Text(
+                    text = "Appearance",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 4.dp)
+                )
+            }
+
+            item {
+                val themeModeLabel = when (themeMode) {
+                    "light" -> "Light"
+                    "dark" -> "Dark"
+                    else -> "System default"
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showThemePicker = true }
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            text = "Theme",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                        Text(
+                            text = "Choose light, dark, or follow your system setting",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Text(
+                        text = themeModeLabel,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+
+            item { HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp)) }
+
+            // --- Dashboard Metrics section ---
+            item {
+                Text(
+                    text = "Dashboard Metrics",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 2.dp)
+                )
+            }
+
+            item {
+                Text(
+                    text = "Choose which additional metrics to show on the dashboard",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                )
+            }
+
+            item {
+                MetricToggleRow(
+                    label = "Daily Average",
+                    description = "Average spending per day this month",
+                    isEnabled = showDailyAverage,
+                    onToggle = viewModel::setShowDailyAverage
+                )
+            }
+
+            item {
+                MetricToggleRow(
+                    label = "Median Transaction",
+                    description = "Middle value of all transactions",
+                    isEnabled = showMedianTransaction,
+                    onToggle = viewModel::setShowMedianTransaction
+                )
+            }
+
+            item {
+                MetricToggleRow(
+                    label = "Top Merchant",
+                    description = "Merchant with the highest total spend",
+                    isEnabled = showTopMerchant,
+                    onToggle = viewModel::setShowTopMerchant
+                )
+            }
+
+            item {
+                MetricToggleRow(
+                    label = "Smallest Purchase",
+                    description = "Lowest transaction amount this month",
+                    isEnabled = showSmallestPurchase,
+                    onToggle = viewModel::setShowSmallestPurchase
+                )
+            }
+
+            item {
+                MetricToggleRow(
+                    label = "Spending by App",
+                    description = "Source app with the most spend",
+                    isEnabled = showSpendingByApp,
+                    onToggle = viewModel::setShowSpendingByApp
+                )
+            }
+
+            item {
+                MetricToggleRow(
+                    label = "Active Days",
+                    description = "Days with at least one transaction",
+                    isEnabled = showActiveDays,
+                    onToggle = viewModel::setShowActiveDays
+                )
+            }
+
+            item { HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp)) }
+
+            // --- Monitored apps section ---
+            item {
+                Text(
+                    text = "Monitored Apps",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 2.dp)
+                )
+            }
+
+            item {
+                Text(
+                    text = "${monitoredPackages.size} app${if (monitoredPackages.size != 1) "s" else ""} selected",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                )
+            }
+
+            if (installedApps.isEmpty()) {
+                item {
+                    Text(
+                        text = "No apps found. On Android 11+ the system restricts app " +
+                            "visibility — make sure OpenSpend is up to date so it can " +
+                            "discover your installed apps.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+                    )
+                }
+            } else {
+                items(installedApps, key = { it.packageName }) { app ->
+                    AppToggleRow(
+                        appLabel = app.label,
+                        packageName = app.packageName,
+                        isMonitored = app.packageName in monitoredPackages,
+                        onToggle = { checked ->
+                            viewModel.setMonitored(app.packageName, checked)
+                        }
+                    )
                 }
             }
         }
@@ -166,6 +308,51 @@ fun SettingsScreen(
                 showCurrencyPicker = false
             },
             onDismiss = { showCurrencyPicker = false }
+        )
+    }
+
+    // Theme picker dialog
+    if (showThemePicker) {
+        ThemePickerDialog(
+            selected = themeMode,
+            onSelect = { mode ->
+                viewModel.setThemeMode(mode)
+                showThemePicker = false
+            },
+            onDismiss = { showThemePicker = false }
+        )
+    }
+}
+
+@Composable
+private fun MetricToggleRow(
+    label: String,
+    description: String,
+    isEnabled: Boolean,
+    onToggle: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium
+            )
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Switch(
+            checked = isEnabled,
+            onCheckedChange = onToggle
         )
     }
 }
@@ -200,6 +387,51 @@ private fun CurrencyPickerDialog(
                         RadioButton(
                             selected = code == selected,
                             onClick = { onSelect(code) }
+                        )
+                        Text(
+                            text = label,
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.padding(start = 8.dp)
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+@Composable
+private fun ThemePickerDialog(
+    selected: String,
+    onSelect: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val options = listOf(
+        "system" to "System default",
+        "light" to "Light",
+        "dark" to "Dark"
+    )
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Select Theme") },
+        text = {
+            Column {
+                options.forEach { (mode, label) ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onSelect(mode) }
+                            .padding(vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = mode == selected,
+                            onClick = { onSelect(mode) }
                         )
                         Text(
                             text = label,

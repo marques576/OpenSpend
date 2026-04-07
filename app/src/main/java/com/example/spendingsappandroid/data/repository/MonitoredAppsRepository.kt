@@ -23,6 +23,16 @@ class MonitoredAppsRepository @Inject constructor(
         private const val KEY_PACKAGES = "monitored_packages"
         private const val KEY_INITIALIZED = "initialized"
         private const val KEY_CURRENCY = "display_currency"
+        private const val KEY_SHOW_DAILY_AVERAGE = "show_daily_average"
+        private const val KEY_SHOW_MEDIAN = "show_median_transaction"
+        private const val KEY_SHOW_TOP_MERCHANT = "show_top_merchant"
+        private const val KEY_SHOW_SMALLEST = "show_smallest_purchase"
+        private const val KEY_SHOW_SPENDING_BY_APP = "show_spending_by_app"
+        private const val KEY_SHOW_ACTIVE_DAYS = "show_active_days"
+        private const val KEY_THEME_MODE = "theme_mode"
+        const val THEME_SYSTEM = "system"
+        const val THEME_LIGHT = "light"
+        const val THEME_DARK = "dark"
         const val DEFAULT_CURRENCY = "USD"
 
         val SUPPORTED_CURRENCIES = listOf(
@@ -66,12 +76,75 @@ class MonitoredAppsRepository @Inject constructor(
     private val _currency = MutableStateFlow(prefs.getString(KEY_CURRENCY, DEFAULT_CURRENCY) ?: DEFAULT_CURRENCY)
     val currency: StateFlow<String> = _currency.asStateFlow()
 
+    // --- Metric toggle preferences (default: all enabled) ---
+
+    private val _showDailyAverage = MutableStateFlow(prefs.getBoolean(KEY_SHOW_DAILY_AVERAGE, true))
+    val showDailyAverage: StateFlow<Boolean> = _showDailyAverage.asStateFlow()
+
+    private val _showMedianTransaction = MutableStateFlow(prefs.getBoolean(KEY_SHOW_MEDIAN, true))
+    val showMedianTransaction: StateFlow<Boolean> = _showMedianTransaction.asStateFlow()
+
+    private val _showTopMerchant = MutableStateFlow(prefs.getBoolean(KEY_SHOW_TOP_MERCHANT, true))
+    val showTopMerchant: StateFlow<Boolean> = _showTopMerchant.asStateFlow()
+
+    private val _showSmallestPurchase = MutableStateFlow(prefs.getBoolean(KEY_SHOW_SMALLEST, true))
+    val showSmallestPurchase: StateFlow<Boolean> = _showSmallestPurchase.asStateFlow()
+
+    private val _showSpendingByApp = MutableStateFlow(prefs.getBoolean(KEY_SHOW_SPENDING_BY_APP, true))
+    val showSpendingByApp: StateFlow<Boolean> = _showSpendingByApp.asStateFlow()
+
+    private val _showActiveDays = MutableStateFlow(prefs.getBoolean(KEY_SHOW_ACTIVE_DAYS, true))
+    val showActiveDays: StateFlow<Boolean> = _showActiveDays.asStateFlow()
+
+    // --- Theme preference ---
+
+    private val _themeMode = MutableStateFlow(prefs.getString(KEY_THEME_MODE, THEME_SYSTEM) ?: THEME_SYSTEM)
+    val themeMode: StateFlow<String> = _themeMode.asStateFlow()
+
+    fun setThemeMode(mode: String) {
+        require(mode in listOf(THEME_SYSTEM, THEME_LIGHT, THEME_DARK))
+        prefs.edit().putString(KEY_THEME_MODE, mode).apply()
+        _themeMode.value = mode
+    }
+
     fun setCurrency(code: String) {
         prefs.edit().putString(KEY_CURRENCY, code).apply()
         _currency.value = code
     }
 
     fun getCurrency(): String = _currency.value
+
+    // --- Metric toggle setters ---
+
+    fun setShowDailyAverage(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_SHOW_DAILY_AVERAGE, enabled).apply()
+        _showDailyAverage.value = enabled
+    }
+
+    fun setShowMedianTransaction(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_SHOW_MEDIAN, enabled).apply()
+        _showMedianTransaction.value = enabled
+    }
+
+    fun setShowTopMerchant(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_SHOW_TOP_MERCHANT, enabled).apply()
+        _showTopMerchant.value = enabled
+    }
+
+    fun setShowSmallestPurchase(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_SHOW_SMALLEST, enabled).apply()
+        _showSmallestPurchase.value = enabled
+    }
+
+    fun setShowSpendingByApp(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_SHOW_SPENDING_BY_APP, enabled).apply()
+        _showSpendingByApp.value = enabled
+    }
+
+    fun setShowActiveDays(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_SHOW_ACTIVE_DAYS, enabled).apply()
+        _showActiveDays.value = enabled
+    }
 
     /** Quick check used by the notification listener (no Flow overhead). */
     fun isMonitored(packageName: String): Boolean =

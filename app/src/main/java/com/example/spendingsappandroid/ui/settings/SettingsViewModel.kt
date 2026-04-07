@@ -27,6 +27,11 @@ class SettingsViewModel @Inject constructor(
     val supportedCurrencies: List<String> =
         MonitoredAppsRepository.SUPPORTED_CURRENCIES
 
+    // --- Theme preference ---
+    val themeMode: StateFlow<String> = monitoredAppsRepository.themeMode
+
+    fun setThemeMode(mode: String) = monitoredAppsRepository.setThemeMode(mode)
+
     fun setCurrency(code: String) {
         monitoredAppsRepository.setCurrency(code)
     }
@@ -34,6 +39,22 @@ class SettingsViewModel @Inject constructor(
     fun setMonitored(packageName: String, monitored: Boolean) {
         monitoredAppsRepository.setMonitored(packageName, monitored)
     }
+
+    // --- Metric toggle states ---
+
+    val showDailyAverage: StateFlow<Boolean> = monitoredAppsRepository.showDailyAverage
+    val showMedianTransaction: StateFlow<Boolean> = monitoredAppsRepository.showMedianTransaction
+    val showTopMerchant: StateFlow<Boolean> = monitoredAppsRepository.showTopMerchant
+    val showSmallestPurchase: StateFlow<Boolean> = monitoredAppsRepository.showSmallestPurchase
+    val showSpendingByApp: StateFlow<Boolean> = monitoredAppsRepository.showSpendingByApp
+    val showActiveDays: StateFlow<Boolean> = monitoredAppsRepository.showActiveDays
+
+    fun setShowDailyAverage(enabled: Boolean) = monitoredAppsRepository.setShowDailyAverage(enabled)
+    fun setShowMedianTransaction(enabled: Boolean) = monitoredAppsRepository.setShowMedianTransaction(enabled)
+    fun setShowTopMerchant(enabled: Boolean) = monitoredAppsRepository.setShowTopMerchant(enabled)
+    fun setShowSmallestPurchase(enabled: Boolean) = monitoredAppsRepository.setShowSmallestPurchase(enabled)
+    fun setShowSpendingByApp(enabled: Boolean) = monitoredAppsRepository.setShowSpendingByApp(enabled)
+    fun setShowActiveDays(enabled: Boolean) = monitoredAppsRepository.setShowActiveDays(enabled)
 
     /**
      * Returns all user-visible installed apps sorted alphabetically,

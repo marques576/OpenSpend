@@ -41,6 +41,7 @@ import java.util.Locale
 @Composable
 fun TransactionListScreen(viewModel: DashboardViewModel) {
     val transactions by viewModel.transactions.collectAsState()
+    val monthLabel by viewModel.monthLabel.collectAsState()
     var transactionToDelete by remember { mutableStateOf<TransactionEntity?>(null) }
 
     if (transactions.isEmpty()) {
@@ -49,7 +50,8 @@ fun TransactionListScreen(viewModel: DashboardViewModel) {
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "No transactions this month",
+                text = if (monthLabel == "This Month") "No transactions this month"
+                       else "No transactions in $monthLabel",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
