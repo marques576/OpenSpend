@@ -130,16 +130,27 @@ fun SettingsScreen(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
             )
 
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(installedApps, key = { it.packageName }) { app ->
-                    AppToggleRow(
-                        appLabel = app.label,
-                        packageName = app.packageName,
-                        isMonitored = app.packageName in monitoredPackages,
-                        onToggle = { checked ->
-                            viewModel.setMonitored(app.packageName, checked)
-                        }
-                    )
+            if (installedApps.isEmpty()) {
+                Text(
+                    text = "No apps found. On Android 11+ the system restricts app " +
+                        "visibility — make sure OpenSpend is up to date so it can " +
+                        "discover your installed apps.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+                )
+            } else {
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    items(installedApps, key = { it.packageName }) { app ->
+                        AppToggleRow(
+                            appLabel = app.label,
+                            packageName = app.packageName,
+                            isMonitored = app.packageName in monitoredPackages,
+                            onToggle = { checked ->
+                                viewModel.setMonitored(app.packageName, checked)
+                            }
+                        )
+                    }
                 }
             }
         }
