@@ -4,83 +4,52 @@ import com.example.spendingsappandroid.data.repository.TransactionRepository
 import com.example.spendingsappandroid.domain.model.MonthlyStats
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import java.util.Calendar
+import java.util.TimeZone
 import javax.inject.Inject
 
 /**
  * Calculates monthly spending statistics from stored transactions.
- * Accepts explicit month boundaries so the caller can navigate
- * between months. Emits updated [MonthlyStats] whenever the
- * underlying data changes.
+ * Automatically determines current month boundaries and emits
+ * updated [MonthlyStats] whenever the underlying data changes.
  */
 class MonthlyStatsUseCase @Inject constructor(
     private val repository: TransactionRepository
 ) {
 
-    /**
-     * @param start     start of the target month in epoch millis
-     * @param end       end of the target month in epoch millis
-     * @param daysElapsed number of days to use for daily-average calculation
-     *                    (current day-of-month for the current month, or total
-     *                     days in the month for past months)
-     */
-    operator fun invoke(start: Long, end: Long, daysElapsed: Int): Flow<MonthlyStats> {
+    operator fun invoke(): Flow<MonthlyStats> {
+        val (start, end) = getCurrentMonthBoundaries()
 
-        // combine supports up to 5 typed flows — split into two groups
-        val coreFlow: Flow<CoreStats> = combine(
+        return combine(
             repository.getTotalSpent(start, end),
             repository.getTransactionCount(start, end),
-            repository.getLargestTransaction(start, end),
-            repository.getSmallestTransaction(start, end),
-            repository.getAllAmounts(start, end)
-        ) { totalSpent, count, largest, smallest, allAmounts ->
-            CoreStats(totalSpent, count, largest, smallest, allAmounts)
-        }
-
-        val extraFlow: Flow<ExtraStats> = combine(
-            repository.getTopMerchant(start, end),
-            repository.getTopSourceApp(start, end),
-            repository.getActiveDays(start, end)
-        ) { topMerchant, topSourceApp, activeDays ->
-            ExtraStats(topMerchant, topSourceApp, activeDays)
-        }
-
-        return combine(coreFlow, extraFlow) { core, extra ->
+            repository.getLargestTransaction(start, end)
+        ) { totalSpent, count, largest ->
             MonthlyStats(
-                totalSpent = core.totalSpent,
-                transactionCount = core.count,
-                averageTransaction = if (core.count > 0) core.totalSpent / core.count else 0.0,
-                largestTransaction = core.largest,
-                smallestTransaction = core.smallest,
-                dailyAverage = if (daysElapsed > 0) core.totalSpent / daysElapsed else 0.0,
-                medianTransaction = computeMedian(core.allAmounts),
-                topMerchant = extra.topMerchant ?: "",
-                topSourceApp = extra.topSourceApp ?: "",
-                activeDays = extra.activeDays
+                totalSpent = totalSpent,
+                transactionCount = count,
+                averageTransaction = if (count > 0) totalSpent / count else 0.0,
+                largestTransaction = largest
             )
         }
     }
 
-    private data class CoreStats(
-        val totalSpent: Double,
-        val count: Int,
-        val largest: Double,
-        val smallest: Double,
-        val allAmounts: List<Double>
-    )
+    private fun getCurrentMonthBoundaries(): Pair<Long, Long> {
+        val calendar = Calendar.getInstance(TimeZone.getDefault())
 
-    private data class ExtraStats(
-        val topMerchant: String?,
-        val topSourceApp: String?,
-        val activeDays: Int
-    )
+        // Start of current month
+        calendar.set(Calendar.DAY_OF_MONTH, 1)
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+        val start = calendar.timeInMillis
 
-    private fun computeMedian(sortedAmounts: List<Double>): Double {
-        if (sortedAmounts.isEmpty()) return 0.0
-        val size = sortedAmounts.size
-        return if (size % 2 == 1) {
-            sortedAmounts[size / 2]
-        } else {
-            (sortedAmounts[size / 2 - 1] + sortedAmounts[size / 2]) / 2.0
-        }
+        // End of current month
+        calendar.add(Calendar.MONTH, 1)
+        calendar.add(Calendar.MILLISECOND, -1)
+        val end = calendar.timeInMillis
+
+        return Pair(start, end)
     }
 }

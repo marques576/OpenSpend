@@ -5,10 +5,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -35,9 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 
@@ -45,19 +41,16 @@ import androidx.hilt.navigation.compose.hiltViewModel
 @Composable
 fun SettingsScreen(
     onBack: () -> Unit,
+    onNavigateToAppSelection: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     BackHandler { onBack() }
 
-    val context = LocalContext.current
     val monitoredPackages by viewModel.monitoredPackages.collectAsState()
     val selectedCurrency by viewModel.currency.collectAsState()
     var showCurrencyPicker by remember { mutableStateOf(false) }
     val themeMode by viewModel.themeMode.collectAsState()
     var showThemePicker by remember { mutableStateOf(false) }
-    val installedApps = remember {
-        viewModel.getInstalledApps(context.packageManager)
-    }
 
     // Metric toggle states
     val showDailyAverage by viewModel.showDailyAverage.collectAsState()
@@ -259,39 +252,35 @@ fun SettingsScreen(
                     text = "Monitored Apps",
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 2.dp)
+                    modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 4.dp)
                 )
             }
 
             item {
-                Text(
-                    text = "${monitoredPackages.size} app${if (monitoredPackages.size != 1) "s" else ""} selected",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-                )
-            }
-
-            if (installedApps.isEmpty()) {
-                item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onNavigateToAppSelection() }
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            text = "Select apps to monitor",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                        Text(
+                            text = "Choose which apps to track for transaction notifications",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                     Text(
-                        text = "No apps found. On Android 11+ the system restricts app " +
-                            "visibility — make sure OpenSpend is up to date so it can " +
-                            "discover your installed apps.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
-                    )
-                }
-            } else {
-                items(installedApps, key = { it.packageName }) { app ->
-                    AppToggleRow(
-                        appLabel = app.label,
-                        packageName = app.packageName,
-                        isMonitored = app.packageName in monitoredPackages,
-                        onToggle = { checked ->
-                            viewModel.setMonitored(app.packageName, checked)
-                        }
+                        text = "${monitoredPackages.size} selected",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             }
@@ -450,39 +439,4 @@ private fun ThemePickerDialog(
     )
 }
 
-@Composable
-private fun AppToggleRow(
-    appLabel: String,
-    packageName: String,
-    isMonitored: Boolean,
-    onToggle: (Boolean) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = appLabel,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                text = packageName,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
-        Switch(
-            checked = isMonitored,
-            onCheckedChange = onToggle
-        )
-    }
-}
+

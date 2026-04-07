@@ -34,6 +34,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.spendingsappandroid.data.repository.MonitoredAppsRepository
 import com.example.spendingsappandroid.ui.dashboard.DashboardScreen
 import com.example.spendingsappandroid.ui.dashboard.DashboardViewModel
+import com.example.spendingsappandroid.ui.settings.AppSelectionScreen
 import com.example.spendingsappandroid.ui.settings.SettingsScreen
 import com.example.spendingsappandroid.ui.theme.SpendingsAppAndroidTheme
 import com.example.spendingsappandroid.ui.transactions.TransactionListScreen
@@ -61,9 +62,15 @@ class MainActivity : ComponentActivity() {
 
             SpendingsAppAndroidTheme(darkTheme = darkTheme) {
                 var showSettings by remember { mutableStateOf(false) }
+                var showAppSelection by remember { mutableStateOf(false) }
 
-                if (showSettings) {
-                    SettingsScreen(onBack = { showSettings = false })
+                if (showAppSelection) {
+                    AppSelectionScreen(onBack = { showAppSelection = false })
+                } else if (showSettings) {
+                    SettingsScreen(
+                        onBack = { showSettings = false },
+                        onNavigateToAppSelection = { showAppSelection = true }
+                    )
                 } else {
                     val viewModel: DashboardViewModel = hiltViewModel()
                     val pagerState = rememberPagerState(pageCount = { 2 })
