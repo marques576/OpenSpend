@@ -3,6 +3,7 @@ package com.example.spendingsappandroid.ui.dashboard
 import android.content.Context
 import android.content.Intent
 import android.provider.Settings
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,10 +12,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,6 +38,13 @@ import java.text.NumberFormat
 import java.util.Currency
 import java.util.Locale
 
+private data class OptionalMetric(
+    val title: String,
+    val value: String,
+    val containerColor: Color,
+    val contentColor: Color
+)
+
 @Composable
 fun DashboardScreen(
     viewModel: DashboardViewModel
@@ -42,6 +55,13 @@ fun DashboardScreen(
     val notificationAccessEnabled = remember {
         mutableStateOf(isNotificationServiceEnabled(context))
     }
+    val monthOffset by viewModel.monthOffset.collectAsState()
+
+    val showDailyAverage by viewModel.showDailyAverage.collectAsState()
+    val showMedianTransaction by viewModel.showMedianTransaction.collectAsState()
+    val showTopMerchant by viewModel.showTopMerchant.collectAsState()
+    val showSpendingByApp by viewModel.showSpendingByApp.collectAsState()
+    val showActiveDays by viewModel.showActiveDays.collectAsState()
 
     Column(
         modifier = Modifier
@@ -59,11 +79,10 @@ fun DashboardScreen(
             )
         }
 
-        Text(
-            text = "This Month",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
+        MonthNavigator(
+            monthOffset = monthOffset,
+            onPreviousMonth = { viewModel.previousMonth() },
+            onNextMonth = { viewModel.nextMonth() }
         )
 
         Row(
@@ -104,6 +123,65 @@ fun DashboardScreen(
                 containerColor = MaterialTheme.colorScheme.errorContainer,
                 contentColor = MaterialTheme.colorScheme.onErrorContainer
             )
+        }
+
+        val optionalMetrics = buildList {
+            if (showDailyAverage) add(OptionalMetric("Daily Average", formatCurrency(stats.dailyAverage, currency), MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer))
+            if (showMedianTransaction) add(OptionalMetric("Median", formatCurrency(stats.medianTransaction, currency), MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.onSecondaryContainer))
+            if (showTopMerchant) add(OptionalMetric("Top Merchant", stats.topMerchant.ifEmpty { "-" }, MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.onTertiaryContainer))
+            if (showActiveDays) add(OptionalMetric("Active Days", stats.activeDays.toString(), MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer))
+        }
+
+        optionalMetrics.chunked(2).forEach { rowMetrics ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                rowMetrics.forEach { metric ->
+                    StatCard(
+                        modifier = Modifier.weight(1f),
+                        title = metric.title,
+                        value = metric.value,
+                        containerColor = metric.containerColor,
+                        contentColor = metric.contentColor
+                    )
+                }
+                if (rowMetrics.size == 1) {
+                    Spacer(modifier = Modifier.weight(1f))
+                }
+            }
+        }
+
+        if (showSpendingByApp && stats.spendingByApp.isNotEmpty()) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                )
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "Spending by App",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    stats.spendingByApp.forEach { (app, amount) ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(text = app)
+                            Text(
+                                text = formatCurrency(amount, currency),
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -174,6 +252,49 @@ private fun NotificationAccessCard(onEnableClick: () -> Unit) {
             }
         }
     }
+}
+
+@Composable
+private fun MonthNavigator(
+    monthOffset: Int,
+    onPreviousMonth: () -> Unit,
+    onNextMonth: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+            contentDescription = "Previous month",
+            modifier = Modifier
+                .size(32.dp)
+                .clickable { onPreviousMonth() },
+            tint = MaterialTheme.colorScheme.onSurface
+        )
+        Text(
+            text = if (monthOffset == 0) "This Month" else getMonthLabel(monthOffset),
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            contentDescription = "Next month",
+            modifier = Modifier
+                .size(32.dp)
+                .clickable { onNextMonth() },
+            tint = if (monthOffset < 0) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+        )
+    }
+}
+
+private fun getMonthLabel(offset: Int): String {
+    val calendar = java.util.Calendar.getInstance()
+    calendar.add(java.util.Calendar.MONTH, offset)
+    val formatter = java.text.SimpleDateFormat("MMMM yyyy", java.util.Locale.getDefault())
+    return formatter.format(calendar.time)
 }
 
 private fun formatCurrency(amount: Double, currencyCode: String = "USD"): String {

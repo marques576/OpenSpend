@@ -8,8 +8,10 @@ import com.example.spendingsappandroid.data.repository.TransactionRepository
 import com.example.spendingsappandroid.domain.model.MonthlyStats
 import com.example.spendingsappandroid.domain.usecase.MonthlyStatsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -20,14 +22,24 @@ import javax.inject.Inject
 class DashboardViewModel @Inject constructor(
     monthlyStatsUseCase: MonthlyStatsUseCase,
     private val repository: TransactionRepository,
-    monitoredAppsRepository: MonitoredAppsRepository
+    private val monitoredAppsRepository: MonitoredAppsRepository
 ) : ViewModel() {
 
     val currency: StateFlow<String> = monitoredAppsRepository.currency
 
-    private val monthBounds = getCurrentMonthBoundaries()
+    val showDailyAverage: StateFlow<Boolean> = monitoredAppsRepository.showDailyAverage
+    val showMedianTransaction: StateFlow<Boolean> = monitoredAppsRepository.showMedianTransaction
+    val showTopMerchant: StateFlow<Boolean> = monitoredAppsRepository.showTopMerchant
+    val showSpendingByApp: StateFlow<Boolean> = monitoredAppsRepository.showSpendingByApp
+    val showActiveDays: StateFlow<Boolean> = monitoredAppsRepository.showActiveDays
 
-    val monthlyStats: StateFlow<MonthlyStats> = monthlyStatsUseCase()
+    private val _monthOffset = MutableStateFlow(0)
+    val monthOffset: StateFlow<Int> = _monthOffset.asStateFlow()
+
+    private val monthBounds: Pair<Long, Long>
+        get() = getMonthBoundaries(_monthOffset.value)
+
+    val monthlyStats: StateFlow<MonthlyStats> = monthlyStatsUseCase(monthBounds)
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
@@ -48,8 +60,19 @@ class DashboardViewModel @Inject constructor(
         }
     }
 
-    private fun getCurrentMonthBoundaries(): Pair<Long, Long> {
+    fun previousMonth() {
+        _monthOffset.value = _monthOffset.value - 1
+    }
+
+    fun nextMonth() {
+        if (_monthOffset.value < 0) {
+            _monthOffset.value = _monthOffset.value + 1
+        }
+    }
+
+    private fun getMonthBoundaries(offset: Int): Pair<Long, Long> {
         val calendar = Calendar.getInstance(TimeZone.getDefault())
+        calendar.add(Calendar.MONTH, offset)
         calendar.set(Calendar.DAY_OF_MONTH, 1)
         calendar.set(Calendar.HOUR_OF_DAY, 0)
         calendar.set(Calendar.MINUTE, 0)

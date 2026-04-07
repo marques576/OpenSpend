@@ -56,7 +56,6 @@ fun SettingsScreen(
     val showDailyAverage by viewModel.showDailyAverage.collectAsState()
     val showMedianTransaction by viewModel.showMedianTransaction.collectAsState()
     val showTopMerchant by viewModel.showTopMerchant.collectAsState()
-    val showSmallestPurchase by viewModel.showSmallestPurchase.collectAsState()
     val showSpendingByApp by viewModel.showSpendingByApp.collectAsState()
     val showActiveDays by viewModel.showActiveDays.collectAsState()
 
@@ -214,15 +213,6 @@ fun SettingsScreen(
                     description = "Merchant with the highest total spend",
                     isEnabled = showTopMerchant,
                     onToggle = viewModel::setShowTopMerchant
-                )
-            }
-
-            item {
-                MetricToggleRow(
-                    label = "Smallest Purchase",
-                    description = "Lowest transaction amount this month",
-                    isEnabled = showSmallestPurchase,
-                    onToggle = viewModel::setShowSmallestPurchase
                 )
             }
 

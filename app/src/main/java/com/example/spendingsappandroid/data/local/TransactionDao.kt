@@ -30,4 +30,10 @@ interface TransactionDao {
 
     @Query("DELETE FROM transactions WHERE id = :id")
     suspend fun deleteById(id: Long)
+
+    @Query("SELECT COUNT(DISTINCT (timestamp / 86400000)) FROM transactions WHERE timestamp BETWEEN :start AND :end")
+    fun getActiveDays(start: Long, end: Long): Flow<Int>
+
+    @Query("SELECT merchant FROM transactions WHERE timestamp BETWEEN :start AND :end GROUP BY merchant ORDER BY SUM(amount) DESC LIMIT 1")
+    fun getTopMerchant(start: Long, end: Long): Flow<String?>
 }

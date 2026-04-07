@@ -3,6 +3,7 @@ package com.example.spendingsappandroid.data.repository
 import com.example.spendingsappandroid.data.local.TransactionDao
 import com.example.spendingsappandroid.data.local.TransactionEntity
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -37,5 +38,13 @@ class TransactionRepository @Inject constructor(
 
     suspend fun deleteById(id: Long) {
         transactionDao.deleteById(id)
+    }
+
+    fun getActiveDays(start: Long, end: Long): Flow<Int> {
+        return transactionDao.getActiveDays(start, end)
+    }
+
+    fun getTopMerchant(start: Long, end: Long): Flow<String> {
+        return transactionDao.getTopMerchant(start, end).map { it ?: "" }
     }
 }

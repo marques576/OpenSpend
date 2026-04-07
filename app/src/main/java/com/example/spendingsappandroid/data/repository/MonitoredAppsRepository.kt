@@ -26,7 +26,6 @@ class MonitoredAppsRepository @Inject constructor(
         private const val KEY_SHOW_DAILY_AVERAGE = "show_daily_average"
         private const val KEY_SHOW_MEDIAN = "show_median_transaction"
         private const val KEY_SHOW_TOP_MERCHANT = "show_top_merchant"
-        private const val KEY_SHOW_SMALLEST = "show_smallest_purchase"
         private const val KEY_SHOW_SPENDING_BY_APP = "show_spending_by_app"
         private const val KEY_SHOW_ACTIVE_DAYS = "show_active_days"
         private const val KEY_THEME_MODE = "theme_mode"
@@ -87,9 +86,6 @@ class MonitoredAppsRepository @Inject constructor(
     private val _showTopMerchant = MutableStateFlow(prefs.getBoolean(KEY_SHOW_TOP_MERCHANT, true))
     val showTopMerchant: StateFlow<Boolean> = _showTopMerchant.asStateFlow()
 
-    private val _showSmallestPurchase = MutableStateFlow(prefs.getBoolean(KEY_SHOW_SMALLEST, true))
-    val showSmallestPurchase: StateFlow<Boolean> = _showSmallestPurchase.asStateFlow()
-
     private val _showSpendingByApp = MutableStateFlow(prefs.getBoolean(KEY_SHOW_SPENDING_BY_APP, true))
     val showSpendingByApp: StateFlow<Boolean> = _showSpendingByApp.asStateFlow()
 
@@ -129,11 +125,6 @@ class MonitoredAppsRepository @Inject constructor(
     fun setShowTopMerchant(enabled: Boolean) {
         prefs.edit().putBoolean(KEY_SHOW_TOP_MERCHANT, enabled).apply()
         _showTopMerchant.value = enabled
-    }
-
-    fun setShowSmallestPurchase(enabled: Boolean) {
-        prefs.edit().putBoolean(KEY_SHOW_SMALLEST, enabled).apply()
-        _showSmallestPurchase.value = enabled
     }
 
     fun setShowSpendingByApp(enabled: Boolean) {

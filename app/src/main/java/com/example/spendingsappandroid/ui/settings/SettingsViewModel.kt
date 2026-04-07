@@ -45,14 +45,12 @@ class SettingsViewModel @Inject constructor(
     val showDailyAverage: StateFlow<Boolean> = monitoredAppsRepository.showDailyAverage
     val showMedianTransaction: StateFlow<Boolean> = monitoredAppsRepository.showMedianTransaction
     val showTopMerchant: StateFlow<Boolean> = monitoredAppsRepository.showTopMerchant
-    val showSmallestPurchase: StateFlow<Boolean> = monitoredAppsRepository.showSmallestPurchase
     val showSpendingByApp: StateFlow<Boolean> = monitoredAppsRepository.showSpendingByApp
     val showActiveDays: StateFlow<Boolean> = monitoredAppsRepository.showActiveDays
 
     fun setShowDailyAverage(enabled: Boolean) = monitoredAppsRepository.setShowDailyAverage(enabled)
     fun setShowMedianTransaction(enabled: Boolean) = monitoredAppsRepository.setShowMedianTransaction(enabled)
     fun setShowTopMerchant(enabled: Boolean) = monitoredAppsRepository.setShowTopMerchant(enabled)
-    fun setShowSmallestPurchase(enabled: Boolean) = monitoredAppsRepository.setShowSmallestPurchase(enabled)
     fun setShowSpendingByApp(enabled: Boolean) = monitoredAppsRepository.setShowSpendingByApp(enabled)
     fun setShowActiveDays(enabled: Boolean) = monitoredAppsRepository.setShowActiveDays(enabled)
 
