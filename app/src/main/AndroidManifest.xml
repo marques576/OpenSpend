@@ -2,6 +2,36 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Package visibility: required on Android 11+ (API 30) so that
+         PackageManager.getInstalledApplications() can see third-party apps
+         the user may want to monitor for spending notifications. -->
+    <queries>
+        <!-- US Banks -->
+        <package android:name="com.chase.sig.android" />
+        <package android:name="com.wf.wellsfargomobile" />
+        <package android:name="com.bankofamerica.cashpromobile" />
+        <package android:name="com.citi.citimobile" />
+        <package android:name="com.usbank.mobilebanking" />
+        <!-- Payment apps -->
+        <package android:name="com.paypal.android.p2pmobile" />
+        <package android:name="com.venmo" />
+        <package android:name="com.squareup.cash" />
+        <package android:name="com.google.android.apps.walletnfcrel" />
+        <!-- India UPI -->
+        <package android:name="com.google.android.apps.nbu.paisa.user" />
+        <package android:name="com.phonepe.app" />
+        <package android:name="in.org.npci.upiapp" />
+        <!-- International -->
+        <package android:name="com.revolut.revolut" />
+        <package android:name="com.transferwise.android" />
+        <package android:name="de.number26.android" />
+        <!-- Broad intent to discover other apps that post notifications -->
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+    </queries>
+
     <application
         android:name=".SpendingsApp"
         android:allowBackup="true"
