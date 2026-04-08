@@ -27,7 +27,6 @@ That's it. No manual entry, no bank logins, no cloud sync.
 - **Transaction list** — swipe right from the dashboard to see all transactions for the current month. Long-press any entry to delete it if it doesn't make sense.
 - **100% offline** — no internet permission, no API calls, no telemetry. Zero network access.
 - **Privacy first** — raw notification text is never stored. Only structured data (amount, merchant, currency, timestamp) is saved locally.
-- **Material You** — Jetpack Compose UI with Material 3 and dynamic colors on Android 12+.
 
 ## Requirements
 
