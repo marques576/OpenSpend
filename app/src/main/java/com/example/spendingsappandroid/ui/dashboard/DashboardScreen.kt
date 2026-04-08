@@ -177,12 +177,12 @@ fun DashboardScreen(
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
-                    stats.spendingByApp.forEach { (app, amount) ->
+                    stats.spendingByApp.forEach { (packageName, amount) ->
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text(text = app)
+                            Text(text = getAppName(packageName))
                             Text(
                                 text = formatCurrency(amount, currency),
                                 fontWeight = FontWeight.Medium
@@ -314,6 +314,33 @@ private fun formatCurrency(amount: Double, currencyCode: String = "USD"): String
         // Fall back to default locale currency
     }
     return format.format(amount)
+}
+
+private fun getAppName(packageName: String): String {
+    val knownApps = mapOf(
+        "com.chase.sig.android" to "Chase",
+        "com.wf.wellsfargomobile" to "Wells Fargo",
+        "com.bankofamerica.cashpromobile" to "Bank of America",
+        "com.citi.citimobile" to "Citi",
+        "com.usbank.mobilebanking" to "US Bank",
+        "com.paypal.android.p2pmobile" to "PayPal",
+        "com.venmo" to "Venmo",
+        "com.squareup.cash" to "Cash",
+        "com.google.android.apps.walletnfcrel" to "Google Wallet",
+        "com.google.android.apps.nbu.paisa.user" to "Google Pay",
+        "com.phonepe.app" to "PhonePe",
+        "in.org.npci.upiapp" to "UPI",
+        "com.revolut.revolut" to "Revolut",
+        "com.transferwise.android" to "Wise",
+        "de.number26.android" to "N26"
+    )
+    knownApps[packageName]?.let { return it }
+
+    val parts = packageName.split(".")
+    val lastPart = parts.last()
+    return lastPart
+        .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+        .replace(Regex("([a-z])([A-Z])")) { "${it.groupValues[1]} ${it.groupValues[2]}" }
 }
 
 private fun isNotificationServiceEnabled(context: Context): Boolean {
