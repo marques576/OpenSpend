@@ -4,6 +4,11 @@ A **fully local, private** Android spending tracker that automatically reads you
 
 Your financial data never leaves your device.
 
+<div style="display: flex; gap: 10px;">
+<img src="screenshot.png" width="250">
+<img src="settings.png" width="250">
+</div>
+
 ## How It Works
 
 1. **Grant notification access** — the app asks for permission to read notifications (the only permission it needs).
