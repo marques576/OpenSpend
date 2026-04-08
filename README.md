@@ -46,3 +46,8 @@ Install the app, open and tap **Enable** on the notification access prompt. The 
 - **No analytics or telemetry** — zero tracking.
 - **Local-only storage** — all data lives in an on-device SQLite database.
 - **Notification text is discarded** — only the parsed amount, merchant, currency, and timestamp are kept.
+
+## FAQ
+
+**Why is this only available on Android?**  
+iOS does not allow apps to read notifications from other apps, making the automatic tracking that powers this app impossible on Apple devices.
